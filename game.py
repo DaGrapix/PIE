@@ -5,14 +5,14 @@ from pygame.math import Vector2
 
 
 class Car:
-    def __init__(self, x, y, angle=0.0, length=4, max_steering=30, max_acceleration=5.0):
+    def __init__(self, x, y, angle=0.0, length=4, max_steering=30, max_acceleration=5.0, scaling=1):
         self.position = Vector2(x, y)
         self.velocity = Vector2(0.0, 0.0)
         self.angle = angle
         self.length = length
         self.max_acceleration = max_acceleration
         self.max_steering = max_steering
-        self.max_velocity = 20
+        self.max_velocity = 20/scaling
         self.brake_deceleration = 10
         self.free_deceleration = 2
 
@@ -36,7 +36,7 @@ class Car:
 class Game:
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption("Car tutorial")
+        pygame.display.set_caption("Drone pursuit")
         width = 1280
         height = 720
         self.screen = pygame.display.set_mode((width, height))
@@ -48,7 +48,11 @@ class Game:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_dir, "car.png")
         car_image = pygame.image.load(image_path)
-        car = Car(0, 0)
+        taille = car_image.get_size()
+        scaling = 10
+        taille = [taille[0]/scaling, taille[1]/scaling]
+        car_image = pygame.transform.scale(car_image, taille)
+        car = Car(0, 0, scaling=scaling)
         ppu = 32
 
         while not self.exit:
@@ -66,12 +70,12 @@ class Game:
                 if car.velocity.x < 0:
                     car.acceleration = car.brake_deceleration
                 else:
-                    car.acceleration += 1 * dt
+                    car.acceleration += (1/scaling) * dt
             elif pressed[pygame.K_DOWN]:
                 if car.velocity.x > 0:
                     car.acceleration = -car.brake_deceleration
                 else:
-                    car.acceleration -= 1 * dt
+                    car.acceleration -= (1/scaling) * dt
             elif pressed[pygame.K_SPACE]:
                 if abs(car.velocity.x) > dt * car.brake_deceleration:
                     car.acceleration = -copysign(car.brake_deceleration, car.velocity.x)
@@ -98,9 +102,9 @@ class Game:
 
             # Drawing
             self.screen.fill((0, 0, 0))
-            rotated = pygame.transform.rotate(car_image, car.angle)
-            rect = rotated.get_rect()
-            self.screen.blit(rotated, car.position * ppu - (rect.width / 2, rect.height / 2))
+            rotated_car = pygame.transform.rotate(car_image, car.angle)
+            rect = rotated_car.get_rect()
+            self.screen.blit(rotated_car, car.position * ppu - (rect.width / 2, rect.height / 2))
             pygame.display.flip()
 
             self.clock.tick(self.ticks)
