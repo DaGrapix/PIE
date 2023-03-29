@@ -115,17 +115,9 @@ class Drone:
         del_velocity = Vector2.magnitude(target_velocity - self.velocity)
 
         u = Vector2.normalize(target_position - self.position)
-        u_x = Vector2(1.0, 0.0).rotate(self.angle)
-        u_y = Vector2(0.0, 1.0).rotate(self.angle)
-        cross_product = Vector2.cross(u, u_x)
-        #theta = asin(cross_product)
-
-        #theta = atan2(u.x*u_x.y - u_x.x*u.y, u.x*u.y - u_x.x*u_x.y)
-        x = Vector2.dot(u, u_x)
-        y = Vector2.dot(u, u_y)
-        theta = atan(y/x)
+        v = Vector2(1.0, 0.0).rotate(self.angle)
         
-        theta = Vector2.angle_to(u, u_x)
+        theta = Vector2.angle_to(u, v)
         print(theta)
 
         
