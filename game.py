@@ -4,13 +4,13 @@ from math import sin, radians, degrees, copysign
 from pygame.math import Vector2
 from math import *
 
-k=100
-k_position = 0.01*k
-k_velocity = 0
-k_angle_penalty = 0
-k_velocity_penalty = 0
-k_theta = k
-k_omega = 0
+
+k_position = 1
+k_velocity = 1
+k_angle_penalty = 1
+k_velocity_penalty = 1
+k_theta = 1
+k_omega = 1
 
 
 class Vehicle:
@@ -130,8 +130,8 @@ class Drone:
         self.previous_theta = theta
 
         #Gaz pedal controller
-        self.acceleration = k_position*del_position + k_velocity*del_velocity - k_angle_penalty*sin(radians(self.angle))**2
-        self.acceleration = 0
+        self.acceleration = k_position*del_position + k_velocity*del_velocity - k_angle_penalty*cos(radians(self.angle))**2
+    
         #steering controller
         self.steering = k_theta*theta + k_omega*del_theta - k_velocity_penalty*Vector2.magnitude(self.velocity)/self.max_velocity
         self.steering = max(-self.max_steering, min(self.steering, self.max_steering))
@@ -176,7 +176,7 @@ class Game:
         scaling = 10
         taille = [taille[0]/scaling, taille[1]/scaling]
         car_image = pygame.transform.scale(car_image, taille)
-        car = Vehicle(x=2, y=0, scaling=scaling)
+        car = Vehicle(x=15, y=20, scaling=scaling)
         drone = Drone(x=10, y=10, scaling=scaling)
         ppu = 32
 
