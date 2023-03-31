@@ -118,6 +118,12 @@ class Drone:
         v = Vector2(1.0, 0.0).rotate(self.angle)
         
         theta = Vector2.angle_to(u, v)
+        
+        ps = u[0]*v[0] + u[1]*v[1]
+        theta = asin(u[0]*v[1]-u[1]*v[0])*180/pi
+        if (ps<=0):
+            theta = 90 - theta
+
         print(theta)
 
         
@@ -130,10 +136,12 @@ class Drone:
         self.previous_theta = theta
 
         #Gaz pedal controller
-        self.acceleration = k_position*del_position + k_velocity*del_velocity - k_angle_penalty*cos(radians(self.angle))**2
-    
+        self.acceleration = k_position*del_position + k_velocity*del_velocity
+        #self.acceleration = 0
+
         #steering controller
         self.steering = k_theta*theta + k_omega*del_theta - k_velocity_penalty*Vector2.magnitude(self.velocity)/self.max_velocity
+        self.steering = k_theta*theta
         self.steering = max(-self.max_steering, min(self.steering, self.max_steering))
 
         #velocity update
@@ -171,13 +179,23 @@ class Game:
     def run(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         car_image_path = os.path.join(current_dir, "car.png")
+        drone_image_path = os.path.join(current_dir, "drone.png")
         car_image = pygame.image.load(car_image_path)
-        taille = car_image.get_size()
-        scaling = 10
-        taille = [taille[0]/scaling, taille[1]/scaling]
-        car_image = pygame.transform.scale(car_image, taille)
-        car = Vehicle(x=15, y=20, scaling=scaling)
-        drone = Drone(x=10, y=10, scaling=scaling)
+        drone_image = pygame.image.load(drone_image_path)
+        taille_car = car_image.get_size()
+        scaling_car = 10
+        taille_car = [taille_car[0]/scaling_car, taille_car[1]/scaling_car]
+        car_image = pygame.transform.scale(car_image, taille_car)
+
+        taille_drone = drone_image.get_size()
+        scaling_drone = 10
+        taille_drone = [taille_drone[0]/scaling_drone, taille_drone[1]/scaling_drone]
+
+        car_image = pygame.transform.scale(car_image, taille_car)
+        drone_image = pygame.transform.scale(drone_image, taille_drone)
+
+        car = Vehicle(x=10, y=10, scaling=scaling_car)
+        drone = Drone(x=5, y=20, scaling=scaling_drone)
         ppu = 32
 
         while not self.exit:
@@ -196,7 +214,7 @@ class Game:
             # Drawing
             self.screen.fill((0, 0, 0))
             car.draw(car_image, ppu, self)
-            drone.draw(car_image, ppu, self)
+            drone.draw(drone_image, ppu, self)
             
             pygame.display.flip()
 
