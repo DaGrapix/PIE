@@ -1,6 +1,5 @@
 import os
 import pygame
-from math import sin, radians, degrees, copysign
 from pygame.math import Vector2
 from math import *
 
@@ -61,9 +60,9 @@ class Vehicle:
 
         #steering
         if pressed[pygame.K_RIGHT]:
-            self.steering -= self.k_steering * dt
+            self.steering -= self.k_steering*dt
         elif pressed[pygame.K_LEFT]:
-            self.steering += self.k_steering * dt
+            self.steering += self.k_steering*dt
         else:
             self.steering = 0
         self.steering = max(-self.max_steering, min(self.steering, self.max_steering))
@@ -88,6 +87,14 @@ class Vehicle:
         game.screen.blit(rotated_car, Vector2(ppu*self.position[0],height-ppu*self.position[1]) - (rect.width / 2, rect.height / 2))
         return
 
+def signed_angle(u, v):
+    angle = atan2(v[1], v[0]) - atan2(u[1], u[0])
+    angle = degrees(angle)
+    if angle > 180:
+        angle -= 360
+    elif angle < -180:
+        angle += 360
+    return angle
 
 class Drone:
     def __init__(self, x, y, scaling=1, angle_0=0, length_0=4, max_steering_0=30, max_acceleration_0=5.0, k_steering_0=30,
@@ -116,24 +123,13 @@ class Drone:
         del_position = Vector2.magnitude(target_position - self.position)
         del_velocity = Vector2.magnitude(target_velocity - self.velocity)
 
-        u = Vector2(1.0, 0.0).rotate(self.angle)
+
         v = Vector2.normalize(target_position - self.position)
-        #print(self.angle)
+        v[1] = -v[1] # attention ca donne l'angle dans la base "écran" sinon
+        u = Vector2(1.0, 0.0).rotate(self.angle)
         
-        
-        theta = Vector2.angle_to(u, v)
-        
-        ps = u.x*v.x + u.y*v.y
-        theta = asin(u[0]*v[1]-u[1]*v[0])*180/pi
-        print(u,v)
-        if (ps<=0):
-            theta = 180 - theta
+        theta = signed_angle(u, v)
 
-        #print(theta)
-
-        
-
-        #theta = atan(radians(target_position.y/target_position.x))
         
         #print(target_position.y, target_position.x)
         del_theta = (theta - self.previous_theta)
