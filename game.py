@@ -12,6 +12,8 @@ k_velocity_penalty = 1
 k_theta = 1
 k_omega = 1
 
+width = 1280
+height = 720
 
 class Vehicle:
     def __init__(self, x, y, scaling=1, angle_0=0.0, length_0=4, max_steering_0=30, max_acceleration_0=5.0, k_steering_0=30, brake_deceleration_0=10, free_deceleration_0=2, max_velocity_0=20):
@@ -83,7 +85,7 @@ class Vehicle:
     def draw(self, car_image, ppu, game):
         rotated_car = pygame.transform.rotate(car_image, self.angle)
         rect = rotated_car.get_rect()
-        game.screen.blit(rotated_car, self.position * ppu - (rect.width / 2, rect.height / 2))
+        game.screen.blit(rotated_car, Vector2(ppu*self.position[0],height-ppu*self.position[1]) - (rect.width / 2, rect.height / 2))
         return
 
 def signed_angle(u, v):
@@ -126,12 +128,14 @@ class Drone:
         del_position = Vector2.magnitude(target_position - self.position)
         del_velocity = Vector2.magnitude(target_velocity - self.velocity)
 
+
         v = Vector2.normalize(target_position - self.position) # à bruiter parce qu'on connait pas la position exacte
         #v = add_gaussian_noise(v,mean=0,std_dev=0.5)
         v[1] = -v[1] # attention ca donne l'angle dans la base "écran" sinon
         u = Vector2(1.0, 0.0).rotate(self.angle) #obtenable avec un gyroscope
         
         theta = signed_angle(u, v)
+
         
         #print(target_position.y, target_position.x)
         del_theta = (theta - self.previous_theta)
@@ -158,13 +162,13 @@ class Drone:
         else:
             angular_velocity = 0
 
-        self.position += self.velocity.rotate(-self.angle) * dt
+        self.position += self.velocity.rotate(self.angle) * dt
         self.angle += degrees(angular_velocity) * dt
     
     def draw(self, drone_image, ppu, game):
-        rotated_drone = pygame.transform.rotate(drone_image, self.angle)
+        rotated_drone = pygame.transform.rotate(drone_image, -self.angle)
         rect = rotated_drone.get_rect()
-        game.screen.blit(rotated_drone, self.position * ppu - (rect.width / 2, rect.height / 2))
+        game.screen.blit(rotated_drone, Vector2(ppu*self.position[0],height-ppu*self.position[1]) - (rect.width / 2, rect.height / 2))
         return
 
 
@@ -172,8 +176,6 @@ class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("Drone pursuit")
-        width = 1280
-        height = 720
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
         self.ticks = 60
