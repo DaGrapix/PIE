@@ -2,6 +2,7 @@ import os
 import pygame
 from pygame.math import Vector2
 from math import *
+import numpy as np
 
 
 k_position = 1
@@ -96,8 +97,12 @@ def signed_angle(u, v):
         angle += 360
     return angle
 
+def add_gaussian_noise(vec, mean=0, std_dev=1, size = 2):
+    noise = np.random.normal(mean, std_dev, size)
+    return vec + noise
+
 class Drone:
-    def __init__(self, x, y, scaling=1, angle_0=0, length_0=4, max_steering_0=30, max_acceleration_0=5.0, k_steering_0=30,
+    def __init__(self, x, y, scaling=1, angle_0=0, length_0=2, max_steering_0=30, max_acceleration_0=5.0, k_steering_0=30,
                  brake_deceleration_0=10, free_deceleration_0=2, max_velocity_0=20, min_velocity_0=0,
                  target_position_0=Vector2(0,0)):
         self.position = Vector2(x, y)
@@ -124,9 +129,10 @@ class Drone:
         del_velocity = Vector2.magnitude(target_velocity - self.velocity)
 
 
-        v = Vector2.normalize(target_position - self.position)
+        v = Vector2.normalize(target_position - self.position) # à bruiter parce qu'on connait pas la position exacte
+        #v = add_gaussian_noise(v,mean=0,std_dev=0.5)
         v[1] = -v[1] # attention ca donne l'angle dans la base "écran" sinon
-        u = Vector2(1.0, 0.0).rotate(self.angle)
+        u = Vector2(1.0, 0.0).rotate(self.angle) #obtenable avec un gyroscope
         
         theta = signed_angle(u, v)
 
