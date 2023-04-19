@@ -1,9 +1,11 @@
 import game
 import math
 import random
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon, Point, LineString
+
 
 
 
@@ -96,29 +98,68 @@ def assignment(drones_list, zones_list) :
     return assignment_list, list(set(drones_list) - set(assigned_drones)), zones_list
 
 
+def compute_mesh(assignment_list) :
+    '''Computes a list of mesh over a list of zones
+
+    Args:
+          assignment_list (tuple (Drone, 2 dimension float list)): list of couples (drone, zone assigned)
+    Returns :
+          zones_mesh (2 dimension list of float) : a list of lists of mesh points coordinates for each each zone
+    '''
+    
+    zones_list = [sub_list[1] for sub_list in assignment_list]
+    mesh_size = 0.5
+    
+    # Coordinates to Polygon objects
+    zones_mesh = []
+    for zone in zones_list :
+        poly = Polygon(zone)
+        # Limits of polygon
+        min_x, min_y, max_x, max_y = poly.bounds
+        
+        # Construct square mesh 
+        x_coords = np.arange(min_x, max_x + mesh_size, mesh_size)
+        y_coords = np.arange(min_y, max_y + mesh_size, mesh_size)
+        mesh_x, mesh_y = np.meshgrid(x_coords, y_coords)
+        mesh_points = np.column_stack((mesh_x.ravel(), mesh_y.ravel()))
+
+        # Extract points belonging to the polygon
+        mask = [poly.contains(Point(p[0], p[1])) for p in mesh_points]
+        mesh_points = mesh_points[mask]
+        zones_mesh.append(mesh_points)
+        print(zones_mesh)
+    return zones_mesh
 
 
-def print_assignment(assignment_list, left_drones_list, left_zones_list) :
+
+
+def print_assignment(assignment_list, left_drones_list, left_zones_list, zones_mesh) :
     '''Prints the result of the assignement
 
     Args:
          assignment_list (tuple (Drone, 2 dimension list)): list of couples (drone, zone assigned)
          left_drones_list (2 dimension float list): list of unassigned drones (if number of drones > number of zones)
          left_zones_list (3 dimension float list): list of unassigned zones outline coordinates (if number of zones > number of drones)
-
+         zones_mesh (list of tuples) : list of points coordinates of the mesh
     Returns:
     '''
     no_of_colors = len(assignment_list)
     color = ["#"+''.join([random.choice('123456789ABCDEF') for i in range(6)]) for j in range(no_of_colors)]
     for i, (drone, zone) in enumerate(assignment_list) :
         print(i)
-        plt.plot(drone.position.x, drone.position.y, marker ='1', c=color[i])
+        plt.plot(drone.position.x, drone.position.y, marker='1', c=color[i])
         x_coords = []
         y_coords = []
         for (x, y) in zone :
             x_coords.append(x)
             y_coords.append(y)
         plt.plot(x_coords, y_coords, c=color[i])
+        x_coords = []
+        y_coords = []
+        graph, = plt.plot([], [], 'o')
+        for (x, y) in zones_mesh[i] :
+             plt.plot(x, y, marker='+', c=color[i])
+             #plt.pause(0.1)
     for drone in left_drones_list :
         plt.scatter(drone.position.x, drone.position.y, marker='1', c='black')
     for zone in left_zones_list :
@@ -128,11 +169,13 @@ def print_assignment(assignment_list, left_drones_list, left_zones_list) :
             x_coords.append(x)
             y_coords.append(y)
         plt.plot(x_coords, y_coords, c='black')
+    #plt.show(block=True)
     plt.show()
 
 
-    
 
+
+    
 def main() :
     
     drone_1 = game.Drone(0, 0)
@@ -144,7 +187,8 @@ def main() :
     zone_list = divide_ring_zone((0.,0.), 3., 5., 2)
     a, b, c  = assignment([drone_1, drone_2, drone_3], zone_list)
     #print("\nAssignment list :", a,"\nLeft drones :", b,"\nLeft zones", c)
-    print_assignment(a, b, c)
+    zones_mesh = compute_mesh(a)
+    print_assignment(a, b, c, zones_mesh)
     
     
     
