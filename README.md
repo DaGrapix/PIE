@@ -6,4 +6,4 @@ Il présente entre autre une simulation numérique d'un comportement en essaim d
 - Une première qui consiste à poursuivre un véhicule en fuite.
 - Une deuxième qui consiste à cartographier une zone soit rectangulaire, soit en anneau.
 
-![plot](./)
+![plot](./Poster.png)
